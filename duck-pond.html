@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duck Pond Pick — Carnival Days</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#F1E6C8;
+    --canvas-dark:#e8d8ae;
+    --tent-red:#C1272D;
+    --tent-red-dark:#98181d;
+    --gold:#E8A33D;
+    --ink:#23233A;
+    --teal:#2F7A6D;
+    --white:#FFFDF8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--canvas);
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(255,255,255,0.35) 0, transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(0,0,0,0.05) 0, transparent 50%);
+    font-family:'Poppins', sans-serif;
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    overflow-x:hidden;
+  }
+
+  /* ---- Big top scalloped header ---- */
+  .tent-header{
+    width:100%;
+    background:repeating-linear-gradient(
+      90deg,
+      var(--tent-red) 0px, var(--tent-red) 40px,
+      var(--gold) 40px, var(--gold) 80px
+    );
+    padding-bottom:22px;
+    position:relative;
+    box-shadow:0 4px 10px rgba(0,0,0,0.15);
+  }
+  .tent-header::after{
+    content:"";
+    position:absolute;
+    bottom:0; left:0; right:0;
+    height:22px;
+    background:
+      radial-gradient(circle at 20px 0, transparent 20px, var(--canvas) 21px) 0 -1px / 40px 22px repeat-x;
+  }
+  .tent-header h1{
+    font-family:'Alfa Slab One', serif;
+    text-align:center;
+    color:var(--white);
+    text-shadow:0 3px 0 rgba(0,0,0,0.25);
+    font-size:clamp(28px, 5vw, 48px);
+    margin:0;
+    padding:28px 16px 34px;
+    letter-spacing:1px;
+  }
+  .tent-header p{
+    text-align:center;
+    color:var(--white);
+    margin:-18px 0 0;
+    padding-bottom:16px;
+    font-weight:600;
+    opacity:0.9;
+  }
+
+  main{
+    width:100%;
+    max-width:720px;
+    padding:28px 20px 60px;
+    text-align:center;
+  }
+
+  .intro{
+    font-size:16px;
+    line-height:1.5;
+    max-width:520px;
+    margin:0 auto 28px;
+    color:#4a4a63;
+  }
+
+  /* ---- Pond ---- */
+  .pond{
+    position:relative;
+    background:linear-gradient(180deg, #bfe3e0, #8fc9c4);
+    border:6px solid var(--white);
+    border-radius:50% / 18%;
+    height:320px;
+    display:flex;
+    align-items:center;
+    justify-content:space-around;
+    padding:0 4%;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15), inset 0 0 40px rgba(0,0,0,0.08);
+  }
+  .pond::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:inherit;
+    background-image: repeating-radial-gradient(circle at 30% 40%, rgba(255,255,255,0.15) 0, transparent 30px);
+    pointer-events:none;
+  }
+
+  .duck-wrap{
+    position:relative;
+    cursor:pointer;
+    animation: bob 3s ease-in-out infinite;
+  }
+  .duck-wrap:nth-child(1){ animation-delay: 0s; }
+  .duck-wrap:nth-child(2){ animation-delay: .4s; }
+  .duck-wrap:nth-child(3){ animation-delay: .8s; }
+  .duck-wrap:nth-child(4){ animation-delay: 1.2s; }
+  .duck-wrap:nth-child(5){ animation-delay: 1.6s; }
+  .duck-wrap:nth-child(6){ animation-delay: 2.0s; }
+
+  @keyframes bob{
+    0%,100%{ transform: translateY(0) rotate(-2deg); }
+    50%{ transform: translateY(-10px) rotate(2deg); }
+  }
+
+  .duck-svg{
+    width:64px;
+    height:64px;
+    filter: drop-shadow(0 6px 4px rgba(0,0,0,0.2));
+    transition: transform .18s ease;
+  }
+  .duck-wrap:hover .duck-svg{ transform: scale(1.12); }
+  .duck-wrap.selected .duck-svg{ transform: scale(1.22); }
+  .duck-wrap.selected::after{
+    content:"✓";
+    position:absolute;
+    top:-14px; right:-6px;
+    background:var(--teal);
+    color:white;
+    width:22px; height:22px;
+    border-radius:50%;
+    font-size:13px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 2px 4px rgba(0,0,0,0.3);
+  }
+  .duck-label{
+    display:block;
+    margin-top:6px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink);
+    opacity:0;
+    transition:opacity .2s;
+  }
+  .duck-wrap.selected .duck-label,
+  .duck-wrap:hover .duck-label{ opacity:1; }
+
+  /* ---- Form ---- */
+  .entry-card{
+    margin-top:32px;
+    background:var(--white);
+    border-radius:18px;
+    padding:26px;
+    max-width:420px;
+    margin-left:auto;
+    margin-right:auto;
+    box-shadow:0 8px 24px rgba(0,0,0,0.1);
+    display:none;
+  }
+  .entry-card.visible{ display:block; animation: pop-in .3s ease; }
+  @keyframes pop-in{
+    from{ opacity:0; transform: translateY(10px) scale(0.97); }
+    to{ opacity:1; transform: translateY(0) scale(1); }
+  }
+  .entry-card h3{
+    margin:0 0 4px;
+    font-family:'Alfa Slab One', serif;
+    color:var(--tent-red);
+    font-size:20px;
+  }
+  .entry-card p.picked{
+    margin:0 0 16px;
+    font-weight:600;
+  }
+  .entry-card input{
+    width:100%;
+    padding:12px 14px;
+    margin-bottom:12px;
+    border-radius:10px;
+    border:2px solid #e3dcc8;
+    font-family:'Poppins',sans-serif;
+    font-size:14px;
+  }
+  .entry-card input:focus{ outline:2px solid var(--teal); border-color:var(--teal); }
+  .submit-btn{
+    width:100%;
+    padding:13px;
+    border:none;
+    border-radius:10px;
+    background:var(--tent-red);
+    color:white;
+    font-family:'Poppins',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    transition: background .15s;
+  }
+  .submit-btn:hover{ background:var(--tent-red-dark); }
+  .submit-btn:disabled{ opacity:0.6; cursor:default; }
+
+  .ticket{
+    display:none;
+    max-width:420px;
+    margin:32px auto 0;
+    background: var(--gold);
+    border-radius:14px;
+    padding:22px;
+    position:relative;
+    box-shadow:0 8px 20px rgba(0,0,0,0.15);
+  }
+  .ticket.visible{ display:block; animation: pop-in .35s ease; }
+  .ticket::before, .ticket::after{
+    content:"";
+    position:absolute;
+    top:50%; transform:translateY(-50%);
+    width:20px; height:20px;
+    background:var(--canvas);
+    border-radius:50%;
+  }
+  .ticket::before{ left:-10px; }
+  .ticket::after{ right:-10px; }
+  .ticket h3{
+    font-family:'Alfa Slab One', serif;
+    margin:0 0 6px;
+    color:var(--ink);
+  }
+  .ticket p{ margin:0; font-weight:600; color:#3a2e10; }
+
+  footer{
+    color:#6b6b85;
+    font-size:12px;
+    padding-bottom:24px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="tent-header">
+    <h1>🦆 Duck Pond Pick</h1>
+    <p>Pick your duck ahead of the big day — the winning duck is revealed at the event!</p>
+  </div>
+
+  <main>
+    <p class="intro">One of these ducks is hiding the golden raffle ticket. Click a duck to lock in your guess, enter your name, and you're in the running — no need to be in the office to play.</p>
+
+    <div class="pond" id="pond"></div>
+
+    <div class="entry-card" id="entryCard">
+      <h3>Lock in your entry</h3>
+      <p class="picked" id="pickedLabel"></p>
+      <input type="text" id="nameInput" placeholder="Your name" required>
+      <input type="email" id="emailInput" placeholder="Your email" required>
+      <button class="submit-btn" id="submitBtn">Submit my pick</button>
+    </div>
+
+    <div class="ticket" id="ticket">
+      <h3>You're entered! 🎟️</h3>
+      <p id="ticketText"></p>
+    </div>
+  </main>
+
+  <footer>Carnival Days — Duck Pond Pick</footer>
+
+<script>
+  // ===================== CONFIG =====================
+  // Paste your Google Apps Script Web App URL here (see apps-script.gs).
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbygvQDjVTcqSG5Uz7x74v2EYza81OYGdRKG_s5MgIu-bg-cmDgWdhcZShpyhLOcMFGn/exec";
+  // ====================================================
+
+  // Duck colors — swap these for your own vector assets by replacing
+  // renderDuck() below with an <img src="assets/duck-red.svg"> etc.
+  const DUCKS = [
+    { id: 'red',    label: 'Red',    color: '#C1272D' },
+    { id: 'gold',   label: 'Gold',   color: '#E8A33D' },
+    { id: 'teal',   label: 'Teal',   color: '#2F7A6D' },
+    { id: 'purple', label: 'Purple', color: '#7B4B94' },
+    { id: 'blue',   label: 'Blue',   color: '#2E6E9E' },
+    { id: 'pink',   label: 'Pink',   color: '#D9668B' },
+  ];
+
+  function renderDuck(color){
+    return `
+      <svg class="duck-svg" viewBox="0 0 100 100">
+        <ellipse cx="50" cy="65" rx="34" ry="22" fill="${color}"/>
+        <circle cx="70" cy="38" r="18" fill="${color}"/>
+        <circle cx="76" cy="33" r="3" fill="#23233A"/>
+        <polygon points="86,38 100,34 100,44" fill="#F2A93B"/>
+        <path d="M20 62 Q35 50 48 62 Q35 68 20 62 Z" fill="rgba(0,0,0,0.12)"/>
+      </svg>`;
+  }
+
+  const pond = document.getElementById('pond');
+  let selectedDuck = null;
+
+  DUCKS.forEach(duck => {
+    const wrap = document.createElement('div');
+    wrap.className = 'duck-wrap';
+    wrap.dataset.id = duck.id;
+    wrap.innerHTML = renderDuck(duck.color) + `<span class="duck-label">${duck.label}</span>`;
+    wrap.addEventListener('click', () => selectDuck(duck, wrap));
+    pond.appendChild(wrap);
+  });
+
+  function selectDuck(duck, wrap){
+    document.querySelectorAll('.duck-wrap').forEach(w => w.classList.remove('selected'));
+    wrap.classList.add('selected');
+    selectedDuck = duck;
+    document.getElementById('pickedLabel').textContent = `Your pick: ${duck.label} duck`;
+    document.getElementById('entryCard').classList.add('visible');
+    document.getElementById('entryCard').scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', async () => {
+    const name = document.getElementById('nameInput').value.trim();
+    const email = document.getElementById('emailInput').value.trim();
+    if(!name || !email){
+      alert('Please fill in your name and email.');
+      return;
+    }
+    if(!selectedDuck){
+      alert('Please pick a duck first.');
+      return;
+    }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    try{
+      if(SCRIPT_URL && SCRIPT_URL.indexOf('PASTE_YOUR') === -1){
+        await fetch(SCRIPT_URL, {
+          method:'POST',
+          mode:'no-cors',
+          headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+          body: JSON.stringify({ game:'duck-pond', name, email, pick: selectedDuck.label })
+        });
+      }
+    }catch(err){
+      console.error(err);
+    }
+
+    document.getElementById('entryCard').classList.remove('visible');
+    const ticket = document.getElementById('ticket');
+    document.getElementById('ticketText').textContent =
+      `${name}, your ${selectedDuck.label.toLowerCase()} duck is entered. Winning duck is revealed at the event — good luck!`;
+    ticket.classList.add('visible');
+    ticket.scrollIntoView({ behavior:'smooth', block:'center' });
+  });
+</script>
+</body>
+</html>

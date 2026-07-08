@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Balloon Pop — Carnival Days</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#F1E6C8;
+    --tent-red:#C1272D;
+    --tent-red-dark:#98181d;
+    --gold:#E8A33D;
+    --ink:#23233A;
+    --teal:#2F7A6D;
+    --white:#FFFDF8;
+    --sky-top:#f7e7c9;
+    --sky-bottom:#efe0bd;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--canvas);
+    font-family:'Poppins', sans-serif;
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    overflow-x:hidden;
+  }
+
+  .tent-header{
+    width:100%;
+    background:repeating-linear-gradient(
+      90deg,
+      var(--teal) 0px, var(--teal) 40px,
+      var(--gold) 40px, var(--gold) 80px
+    );
+    padding-bottom:22px;
+    position:relative;
+    box-shadow:0 4px 10px rgba(0,0,0,0.15);
+  }
+  .tent-header::after{
+    content:"";
+    position:absolute;
+    bottom:0; left:0; right:0;
+    height:22px;
+    background:
+      radial-gradient(circle at 20px 0, transparent 20px, var(--canvas) 21px) 0 -1px / 40px 22px repeat-x;
+  }
+  .tent-header h1{
+    font-family:'Alfa Slab One', serif;
+    text-align:center;
+    color:var(--white);
+    text-shadow:0 3px 0 rgba(0,0,0,0.25);
+    font-size:clamp(28px, 5vw, 48px);
+    margin:0;
+    padding:28px 16px 34px;
+  }
+  .tent-header p{
+    text-align:center;
+    color:var(--white);
+    margin:-18px 0 0;
+    padding-bottom:16px;
+    font-weight:600;
+    opacity:0.9;
+  }
+
+  main{
+    width:100%;
+    max-width:640px;
+    padding:24px 20px 50px;
+    text-align:center;
+  }
+
+  .intro{
+    font-size:16px;
+    line-height:1.5;
+    max-width:520px;
+    margin:0 auto 20px;
+    color:#4a4a63;
+  }
+
+  .hud{
+    display:flex;
+    justify-content:space-between;
+    max-width:520px;
+    margin:0 auto 12px;
+    font-weight:700;
+    font-size:15px;
+  }
+  .hud span.value{
+    color:var(--tent-red);
+    font-family:'Alfa Slab One', serif;
+    font-size:20px;
+  }
+
+  .game-frame{
+    position:relative;
+    height:420px;
+    background:linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
+    border:6px solid var(--white);
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 10px 25px rgba(0,0,0,0.15), inset 0 0 40px rgba(0,0,0,0.05);
+  }
+
+  .start-screen, .end-screen{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    background:rgba(255,253,248,0.94);
+    z-index:5;
+  }
+  .end-screen{ display:none; }
+
+  .start-screen h2, .end-screen h2{
+    font-family:'Alfa Slab One', serif;
+    color:var(--tent-red);
+    margin:0;
+    font-size:24px;
+  }
+
+  .big-btn{
+    padding:13px 28px;
+    border:none;
+    border-radius:10px;
+    background:var(--tent-red);
+    color:white;
+    font-family:'Poppins',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    transition: background .15s;
+  }
+  .big-btn:hover{ background:var(--tent-red-dark); }
+
+  .balloon{
+    position:absolute;
+    bottom:-90px;
+    width:56px;
+    height:70px;
+    cursor:pointer;
+    will-change: transform;
+  }
+  .balloon svg{ width:100%; height:100%; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.15)); }
+
+  .pop-particle{
+    position:absolute;
+    border-radius:50%;
+    pointer-events:none;
+    animation: burst .4s ease-out forwards;
+  }
+  @keyframes burst{
+    from{ opacity:1; transform: scale(0.4); }
+    to{ opacity:0; transform: scale(1.6) translateY(-14px); }
+  }
+
+  .score-form{
+    max-width:340px;
+    margin:0 auto;
+  }
+  .score-form input{
+    width:100%;
+    padding:12px 14px;
+    margin-bottom:12px;
+    border-radius:10px;
+    border:2px solid #e3dcc8;
+    font-family:'Poppins',sans-serif;
+    font-size:14px;
+  }
+  .score-form input:focus{ outline:2px solid var(--teal); border-color:var(--teal); }
+
+  footer{
+    color:#6b6b85;
+    font-size:12px;
+    padding-bottom:24px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="tent-header">
+    <h1>🎈 Balloon Pop</h1>
+    <p>Quick reflexes, big prizes — pop as many as you can in 30 seconds.</p>
+  </div>
+
+  <main>
+    <p class="intro">Balloons rise faster the longer you play. Click or tap to pop them and rack up your score. Submit your best run before time's up.</p>
+
+    <div class="hud">
+      <div>Time: <span class="value" id="timeLeft">30</span>s</div>
+      <div>Score: <span class="value" id="scoreVal">0</span></div>
+    </div>
+
+    <div class="game-frame" id="gameFrame">
+      <div class="start-screen" id="startScreen">
+        <h2>Ready to pop some balloons?</h2>
+        <button class="big-btn" id="startBtn">Start Game</button>
+      </div>
+
+      <div class="end-screen" id="endScreen">
+        <h2 id="finalScoreText">Score: 0</h2>
+        <div class="score-form">
+          <input type="text" id="nameInput" placeholder="Your name" required>
+          <input type="email" id="emailInput" placeholder="Your email" required>
+          <button class="big-btn" id="submitBtn">Submit my score</button>
+        </div>
+        <p id="submittedMsg" style="display:none; font-weight:600; color:var(--teal);">You're on the board! 🎉</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>Carnival Days — Balloon Pop</footer>
+
+<script>
+  // ===================== CONFIG =====================
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbygvQDjVTcqSG5Uz7x74v2EYza81OYGdRKG_s5MgIu-bg-cmDgWdhcZShpyhLOcMFGn/exec";
+  // ====================================================
+
+  const COLORS = ['#C1272D', '#E8A33D', '#2F7A6D', '#7B4B94', '#2E6E9E', '#D9668B'];
+
+  function balloonSVG(color){
+    return `
+      <svg viewBox="0 0 60 76" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="30" cy="30" rx="28" ry="30" fill="${color}"/>
+        <ellipse cx="21" cy="18" rx="8" ry="10" fill="rgba(255,255,255,0.25)"/>
+        <polygon points="26,58 34,58 30,66" fill="${color}"/>
+        <line x1="30" y1="66" x2="30" y2="76" stroke="#8a7f66" stroke-width="2"/>
+      </svg>`;
+  }
+
+  const gameFrame = document.getElementById('gameFrame');
+  const startScreen = document.getElementById('startScreen');
+  const endScreen = document.getElementById('endScreen');
+  const timeLeftEl = document.getElementById('timeLeft');
+  const scoreValEl = document.getElementById('scoreVal');
+
+  let score = 0;
+  let timeLeft = 30;
+  let spawnInterval = null;
+  let countdownInterval = null;
+  let gameActive = false;
+  let currentSpeed = 3200; // ms to rise, decreases over time
+
+  function spawnBalloon(){
+    const balloon = document.createElement('div');
+    balloon.className = 'balloon';
+    const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+    balloon.innerHTML = balloonSVG(color);
+    const frameWidth = gameFrame.clientWidth;
+    const left = Math.random() * (frameWidth - 70) + 10;
+    balloon.style.left = left + 'px';
+
+    const duration = currentSpeed + Math.random() * 800;
+    balloon.style.transition = `transform ${duration}ms linear`;
+    gameFrame.appendChild(balloon);
+
+    requestAnimationFrame(() => {
+      balloon.style.transform = `translateY(-${gameFrame.clientHeight + 120}px)`;
+    });
+
+    const cleanup = setTimeout(() => {
+      if(balloon.parentNode) balloon.remove();
+    }, duration + 50);
+
+    balloon.addEventListener('click', () => {
+      if(!gameActive) return;
+      clearTimeout(cleanup);
+      popBalloon(balloon);
+    });
+  }
+
+  function popBalloon(balloon){
+    const rect = balloon.getBoundingClientRect();
+    const frameRect = gameFrame.getBoundingClientRect();
+    const x = rect.left - frameRect.left + rect.width/2;
+    const y = rect.top - frameRect.top + rect.height/2;
+
+    for(let i=0;i<8;i++){
+      const p = document.createElement('div');
+      p.className = 'pop-particle';
+      const size = 6 + Math.random()*6;
+      p.style.width = size+'px';
+      p.style.height = size+'px';
+      p.style.left = (x - size/2)+'px';
+      p.style.top = (y - size/2)+'px';
+      p.style.background = COLORS[Math.floor(Math.random()*COLORS.length)];
+      const angle = (Math.PI*2*i)/8;
+      p.style.setProperty('--tx', Math.cos(angle)*24+'px');
+      gameFrame.appendChild(p);
+      setTimeout(()=> p.remove(), 420);
+    }
+
+    balloon.remove();
+    score++;
+    scoreValEl.textContent = score;
+  }
+
+  function startGame(){
+    score = 0;
+    timeLeft = 30;
+    currentSpeed = 3200;
+    scoreValEl.textContent = 0;
+    timeLeftEl.textContent = 30;
+    gameActive = true;
+    startScreen.style.display = 'none';
+    endScreen.style.display = 'none';
+
+    spawnInterval = setInterval(() => {
+      spawnBalloon();
+      if(currentSpeed > 1400) currentSpeed -= 60; // ramp difficulty
+    }, 650);
+
+    countdownInterval = setInterval(() => {
+      timeLeft--;
+      timeLeftEl.textContent = timeLeft;
+      if(timeLeft <= 0) endGame();
+    }, 1000);
+  }
+
+  function endGame(){
+    gameActive = false;
+    clearInterval(spawnInterval);
+    clearInterval(countdownInterval);
+    document.querySelectorAll('.balloon').forEach(b => b.remove());
+    document.getElementById('finalScoreText').textContent = `Final score: ${score}`;
+    endScreen.style.display = 'flex';
+  }
+
+  document.getElementById('startBtn').addEventListener('click', startGame);
+
+  document.getElementById('submitBtn').addEventListener('click', async () => {
+    const name = document.getElementById('nameInput').value.trim();
+    const email = document.getElementById('emailInput').value.trim();
+    if(!name || !email){
+      alert('Please fill in your name and email.');
+      return;
+    }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    try{
+      if(SCRIPT_URL && SCRIPT_URL.indexOf('PASTE_YOUR') === -1){
+        await fetch(SCRIPT_URL, {
+          method:'POST',
+          mode:'no-cors',
+          headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+          body: JSON.stringify({ game:'balloon-pop', name, email, score })
+        });
+      }
+    }catch(err){
+      console.error(err);
+    }
+
+    btn.style.display = 'none';
+    document.getElementById('submittedMsg').style.display = 'block';
+  });
+</script>
+</body>
+</html>
