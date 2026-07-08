@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -247,7 +247,10 @@
   let spawnInterval = null;
   let countdownInterval = null;
   let gameActive = false;
-  let currentSpeed = 3200; // ms to rise, decreases over time
+  let currentSpeed = 2600; // ms to rise, decreases over time
+  const SPAWN_TICK_MS = 420;      // how often a new wave of balloons appears (lower = more frequent)
+  const BALLOONS_PER_TICK = 2;    // how many balloons appear per wave
+  const MIN_SPEED = 900;          // fastest balloons get as time goes on
 
   function spawnBalloon(){
     const balloon = document.createElement('div');
@@ -314,9 +317,11 @@
     endScreen.style.display = 'none';
 
     spawnInterval = setInterval(() => {
-      spawnBalloon();
-      if(currentSpeed > 1400) currentSpeed -= 60; // ramp difficulty
-    }, 650);
+      for(let i = 0; i < BALLOONS_PER_TICK; i++){
+        setTimeout(() => { if(gameActive) spawnBalloon(); }, i * 120);
+      }
+      if(currentSpeed > MIN_SPEED) currentSpeed -= 45; // ramp difficulty
+    }, SPAWN_TICK_MS);
 
     countdownInterval = setInterval(() => {
       timeLeft--;
