@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carnival Days — Play From Anywhere</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#F1E6C8;
+    --tent-red:#C1272D;
+    --tent-red-dark:#98181d;
+    --gold:#E8A33D;
+    --ink:#23233A;
+    --teal:#2F7A6D;
+    --white:#FFFDF8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--canvas);
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(255,255,255,0.35) 0, transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(0,0,0,0.05) 0, transparent 50%);
+    font-family:'Poppins', sans-serif;
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  .tent-header{
+    width:100%;
+    background:repeating-linear-gradient(
+      90deg,
+      var(--tent-red) 0px, var(--tent-red) 40px,
+      var(--gold) 40px, var(--gold) 80px
+    );
+    padding-bottom:22px;
+    position:relative;
+    box-shadow:0 4px 10px rgba(0,0,0,0.15);
+  }
+  .tent-header::after{
+    content:"";
+    position:absolute;
+    bottom:0; left:0; right:0;
+    height:22px;
+    background:
+      radial-gradient(circle at 20px 0, transparent 20px, var(--canvas) 21px) 0 -1px / 40px 22px repeat-x;
+  }
+  .tent-header h1{
+    font-family:'Alfa Slab One', serif;
+    text-align:center;
+    color:var(--white);
+    text-shadow:0 3px 0 rgba(0,0,0,0.25);
+    font-size:clamp(30px, 6vw, 52px);
+    margin:0;
+    padding:34px 16px 34px;
+    letter-spacing:1px;
+  }
+  .tent-header p{
+    text-align:center;
+    color:var(--white);
+    margin:-18px 0 0;
+    padding-bottom:16px;
+    font-weight:600;
+    opacity:0.9;
+  }
+
+  main{
+    width:100%;
+    max-width:920px;
+    padding:36px 20px 60px;
+    text-align:center;
+  }
+
+  .intro{
+    font-size:16px;
+    line-height:1.5;
+    max-width:560px;
+    margin:0 auto 36px;
+    color:#4a4a63;
+  }
+
+  .game-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap:24px;
+  }
+
+  .game-card{
+    background:var(--white);
+    border-radius:18px;
+    padding:26px 22px 24px;
+    text-decoration:none;
+    color:var(--ink);
+    box-shadow:0 8px 20px rgba(0,0,0,0.1);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    transition: transform .18s ease, box-shadow .18s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  .game-card:hover{
+    transform: translateY(-6px);
+    box-shadow:0 14px 28px rgba(0,0,0,0.16);
+  }
+  .game-card .stripe{
+    position:absolute;
+    top:0; left:0; right:0;
+    height:8px;
+  }
+  .game-card .icon{
+    font-size:44px;
+    margin:10px 0 14px;
+  }
+  .game-card h3{
+    font-family:'Alfa Slab One', serif;
+    margin:0 0 8px;
+    font-size:19px;
+  }
+  .game-card p{
+    margin:0 0 18px;
+    font-size:13.5px;
+    color:#5a5a72;
+    line-height:1.4;
+  }
+  .game-card .tag{
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    padding:5px 12px;
+    border-radius:999px;
+    margin-bottom:14px;
+  }
+  .game-card.duck .tag{ background:#e5f2ef; color:var(--teal); }
+  .game-card.balloon .tag{ background:#fbe9c8; color:var(--tent-red-dark); }
+  .game-card.soon .tag{ background:#efeaf5; color:#7B4B94; }
+
+  .play-btn{
+    padding:10px 22px;
+    border-radius:10px;
+    background:var(--tent-red);
+    color:white;
+    font-weight:700;
+    font-size:14px;
+    transition: background .15s;
+  }
+  .game-card:hover .play-btn{ background:var(--tent-red-dark); }
+
+  .game-card.soon{
+    opacity:0.6;
+    cursor:default;
+  }
+  .game-card.soon:hover{
+    transform:none;
+    box-shadow:0 8px 20px rgba(0,0,0,0.1);
+  }
+  .game-card.soon .play-btn{ background:#b8b3c4; }
+
+  footer{
+    color:#6b6b85;
+    font-size:12px;
+    padding-bottom:24px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="tent-header">
+    <h1>🎪 Carnival Days</h1>
+    <p>Play from anywhere — pick a game below to get in on the fun.</p>
+  </div>
+
+  <main>
+    <p class="intro">Whether you're joining us in the office or playing along from home, here's where to test your luck and your reflexes. Pick a game to get started — you can play as many as you like.</p>
+
+    <div class="game-grid">
+
+      <a class="game-card duck" href="duck-pond.html">
+        <div class="stripe" style="background:var(--teal);"></div>
+        <span class="tag">Game of chance</span>
+        <div class="icon">🦆</div>
+        <h3>Duck Pond Pick</h3>
+        <p>Pick a duck ahead of the big day. The winning duck is revealed live at the event.</p>
+        <span class="play-btn">Play now</span>
+      </a>
+
+      <a class="game-card balloon" href="balloon-pop.html">
+        <div class="stripe" style="background:var(--gold);"></div>
+        <span class="tag">High score</span>
+        <div class="icon">🎈</div>
+        <h3>Balloon Pop</h3>
+        <p>30 seconds, fast reflexes. Watch for Dash — those gold balloons are worth extra points.</p>
+        <span class="play-btn">Play now</span>
+      </a>
+
+      <!--
+        Add more games here as they're built — just copy one of the
+        <a class="game-card ..."> blocks above and point the href
+        at the new game's HTML file.
+      -->
+      <div class="game-card soon">
+        <div class="stripe" style="background:#7B4B94;"></div>
+        <span class="tag">Coming soon</span>
+        <div class="icon">🎯</div>
+        <h3>More games on the way</h3>
+        <p>We're cooking up another carnival challenge — check back soon.</p>
+        <span class="play-btn">Coming soon</span>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>Carnival Days — an office summer event</footer>
+
+</body>
+</html>
