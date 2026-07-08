@@ -277,11 +277,22 @@
     60%{ opacity:1; transform: translateY(-6px) scale(1.05); }
     100%{ transform: translateY(0) scale(1); }
   }
+  .back-link{
+    display:inline-block;
+    color:var(--white);
+    font-size:13px;
+    font-weight:600;
+    text-decoration:none;
+    opacity:0.9;
+    padding:10px 16px 0;
+  }
+  .back-link:hover{ opacity:1; text-decoration:underline; }
 </style>
 </head>
 <body>
 
   <div class="tent-header">
+    <a class="back-link" href="index.html">← All games</a>
     <h1>🦆 Duck Pond Pick</h1>
     <p>Pick your duck ahead of the big day — the winning duck is revealed at the event!</p>
   </div>
