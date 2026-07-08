@@ -244,6 +244,39 @@
     font-size:12px;
     padding-bottom:24px;
   }
+
+  .entries-count{
+    display:inline-block;
+    background:var(--white);
+    border-radius:999px;
+    padding:8px 18px;
+    font-weight:700;
+    font-size:13px;
+    color:var(--teal);
+    box-shadow:0 4px 10px rgba(0,0,0,0.08);
+    margin-bottom:22px;
+  }
+
+  .confetti-piece{
+    position:fixed;
+    top:-16px;
+    width:9px;
+    height:16px;
+    opacity:0.95;
+    pointer-events:none;
+    z-index:999;
+    animation: confetti-fall 1.7s ease-in forwards;
+  }
+  @keyframes confetti-fall{
+    to{ transform: translateY(100vh) rotate(360deg); opacity:0; }
+  }
+
+  .ticket.visible{ animation: bounce-in .5s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes bounce-in{
+    0%{ opacity:0; transform: translateY(20px) scale(0.7); }
+    60%{ opacity:1; transform: translateY(-6px) scale(1.05); }
+    100%{ transform: translateY(0) scale(1); }
+  }
 </style>
 </head>
 <body>
@@ -255,6 +288,8 @@
 
   <main>
     <p class="intro">One of these ducks is hiding the golden raffle ticket. Click a duck to lock in your guess, enter your name, and you're in the running — no need to be in the office to play.</p>
+
+    <div class="entries-count" id="entriesCount" style="display:none;">🦆 0 ducks picked so far</div>
 
     <div class="pond" id="pond"></div>
 
@@ -304,6 +339,34 @@
 
   const pond = document.getElementById('pond');
   let selectedDuck = null;
+
+  function fireConfetti(count = 60){
+    const colors = ['#C1272D', '#E8A33D', '#2F7A6D', '#7B4B94', '#2E6E9E', '#D9668B'];
+    for(let i = 0; i < count; i++){
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random() * 100 + 'vw';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.animationDelay = (Math.random() * 0.3) + 's';
+      piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+      document.body.appendChild(piece);
+      setTimeout(() => piece.remove(), 2100);
+    }
+  }
+
+  async function loadEntryCount(){
+    if(!SCRIPT_URL || SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return;
+    try{
+      const res = await fetch(`${SCRIPT_URL}?action=count&game=duck-pond`);
+      const data = await res.json();
+      const el = document.getElementById('entriesCount');
+      el.textContent = `🦆 ${data.count} duck${data.count === 1 ? '' : 's'} picked so far`;
+      el.style.display = 'inline-block';
+    }catch(err){
+      console.error('Could not load entry count', err);
+    }
+  }
+  loadEntryCount();
 
   DUCKS.forEach(duck => {
     const wrap = document.createElement('div');
@@ -357,6 +420,8 @@
       `${name}, your ${selectedDuck.label.toLowerCase()} duck is entered. Winning duck is revealed at the event — good luck!`;
     ticket.classList.add('visible');
     ticket.scrollIntoView({ behavior:'smooth', block:'center' });
+    fireConfetti();
+    loadEntryCount();
   });
 </script>
 </body>
