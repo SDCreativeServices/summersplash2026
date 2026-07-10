@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whack-a-Dash — Carnival Days</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#F1E6C8;
+    --tent-red:#C1272D;
+    --tent-red-dark:#98181d;
+    --gold:#E8A33D;
+    --ink:#23233A;
+    --teal:#2F7A6D;
+    --white:#FFFDF8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--canvas);
+    font-family:'Poppins', sans-serif;
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    overflow-x:hidden;
+  }
+
+  .tent-header{
+    width:100%;
+    background:repeating-linear-gradient(
+      90deg,
+      var(--ink) 0px, var(--ink) 40px,
+      var(--gold) 40px, var(--gold) 80px
+    );
+    padding-bottom:22px;
+    position:relative;
+    box-shadow:0 4px 10px rgba(0,0,0,0.15);
+  }
+  .tent-header::after{
+    content:"";
+    position:absolute;
+    bottom:0; left:0; right:0;
+    height:22px;
+    background:
+      radial-gradient(circle at 20px 0, transparent 20px, var(--canvas) 21px) 0 -1px / 40px 22px repeat-x;
+  }
+  .back-link{
+    display:inline-block;
+    color:var(--white);
+    font-size:13px;
+    font-weight:600;
+    text-decoration:none;
+    opacity:0.9;
+    padding:10px 16px 0;
+  }
+  .back-link:hover{ opacity:1; text-decoration:underline; }
+  .tent-header h1{
+    font-family:'Alfa Slab One', serif;
+    text-align:center;
+    color:var(--white);
+    text-shadow:0 3px 0 rgba(0,0,0,0.25);
+    font-size:clamp(28px, 5vw, 48px);
+    margin:0;
+    padding:14px 16px 34px;
+  }
+  .tent-header p{
+    text-align:center;
+    color:var(--white);
+    margin:-18px 0 0;
+    padding-bottom:16px;
+    font-weight:600;
+    opacity:0.9;
+  }
+
+  main{
+    width:100%;
+    max-width:640px;
+    padding:24px 20px 50px;
+    text-align:center;
+  }
+
+  .intro{
+    font-size:16px;
+    line-height:1.5;
+    max-width:520px;
+    margin:0 auto 20px;
+    color:#4a4a63;
+  }
+
+  .hud{
+    display:flex;
+    justify-content:space-between;
+    max-width:420px;
+    margin:0 auto 12px;
+    font-weight:700;
+    font-size:15px;
+  }
+  .hud span.value{
+    color:var(--tent-red);
+    font-family:'Alfa Slab One', serif;
+    font-size:20px;
+  }
+
+  .game-frame{
+    position:relative;
+    background: linear-gradient(180deg, #cfead0, #a9d6ab);
+    border:6px solid var(--white);
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 10px 25px rgba(0,0,0,0.15), inset 0 0 40px rgba(0,0,0,0.05);
+    padding:24px;
+  }
+
+  .hole-grid{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap:18px;
+    max-width:420px;
+    margin:0 auto;
+  }
+
+  .hole{
+    position:relative;
+    aspect-ratio: 1 / 0.8;
+    background: radial-gradient(ellipse at center, #4a3222 0%, #6b4a30 60%, #7c5a3c 100%);
+    border-radius:50%;
+    overflow:hidden;
+    cursor:pointer;
+    box-shadow: inset 0 6px 10px rgba(0,0,0,0.5);
+  }
+
+  .critter{
+    position:absolute;
+    left:50%;
+    bottom:-100%;
+    width:88%;
+    height:100%;
+    transform: translateX(-50%);
+    transition: bottom .12s ease-out;
+  }
+  .critter.up{ bottom:8%; }
+  .critter svg{ width:100%; height:100%; }
+
+  .critter.mascot svg{
+    filter: drop-shadow(0 0 8px rgba(232,163,61,0.9));
+  }
+
+  .start-screen, .end-screen{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    background:rgba(255,253,248,0.95);
+    z-index:5;
+  }
+  .end-screen{ display:none; }
+  .start-screen h2, .end-screen h2{
+    font-family:'Alfa Slab One', serif;
+    color:var(--tent-red);
+    margin:0;
+    font-size:24px;
+    animation: bounce-in .5s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes bounce-in{
+    0%{ opacity:0; transform: scale(0.6); }
+    60%{ opacity:1; transform: scale(1.08); }
+    100%{ transform: scale(1); }
+  }
+
+  .big-btn{
+    padding:13px 28px;
+    border:none;
+    border-radius:10px;
+    background:var(--tent-red);
+    color:white;
+    font-family:'Poppins',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    transition: background .15s;
+  }
+  .big-btn:hover{ background:var(--tent-red-dark); }
+
+  .text-btn{
+    display:block;
+    margin:10px auto 0;
+    background:none;
+    border:none;
+    color:var(--teal);
+    font-family:'Poppins',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    text-decoration:underline;
+    cursor:pointer;
+  }
+  .text-btn:hover{ color:var(--tent-red-dark); }
+
+  .score-form{ max-width:340px; margin:0 auto; }
+  .score-form input{
+    width:100%;
+    padding:12px 14px;
+    margin-bottom:12px;
+    border-radius:10px;
+    border:2px solid #e3dcc8;
+    font-family:'Poppins',sans-serif;
+    font-size:14px;
+  }
+  .score-form input:focus{ outline:2px solid var(--teal); border-color:var(--teal); }
+
+  .confetti-piece{
+    position:fixed;
+    top:-16px;
+    width:9px;
+    height:16px;
+    opacity:0.95;
+    pointer-events:none;
+    z-index:999;
+    animation: confetti-fall 1.7s ease-in forwards;
+  }
+  @keyframes confetti-fall{
+    to{ transform: translateY(100vh) rotate(360deg); opacity:0; }
+  }
+
+  .floating-score{
+    position:absolute;
+    font-family:'Alfa Slab One', serif;
+    font-size:18px;
+    color:var(--gold);
+    text-shadow:0 2px 3px rgba(0,0,0,0.3);
+    pointer-events:none;
+    z-index:15;
+    animation: float-up .7s ease-out forwards;
+  }
+  @keyframes float-up{
+    from{ opacity:1; transform: translateY(0); }
+    to{ opacity:0; transform: translateY(-40px); }
+  }
+
+  footer{
+    color:#6b6b85;
+    font-size:12px;
+    padding-bottom:24px;
+  }
+  .floating-score.penalty{ color:var(--tent-red); }
+
+  @keyframes shake{
+    0%, 100%{ transform: translateX(0); }
+    20%{ transform: translateX(-8px); }
+    40%{ transform: translateX(7px); }
+    60%{ transform: translateX(-5px); }
+    80%{ transform: translateX(4px); }
+  }
+  .game-frame.shake{ animation: shake .35s ease; }
+
+  .flash-red{
+    position:absolute;
+    inset:0;
+    background:rgba(193,39,45,0.28);
+    pointer-events:none;
+    z-index:20;
+    animation: flash-fade .4s ease forwards;
+  }
+  @keyframes flash-fade{
+    from{ opacity:1; }
+    to{ opacity:0; }
+  }
+  .explosion{
+    position:absolute;
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    background: radial-gradient(circle, #fff2c9 0%, var(--gold) 35%, var(--tent-red) 65%, transparent 75%);
+    pointer-events:none;
+    z-index:20;
+    animation: explode .45s ease-out forwards;
+  }
+  @keyframes explode{
+    from{ transform: scale(0.3); opacity:1; }
+    to{ transform: scale(4.5); opacity:0; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="tent-header">
+    <a class="back-link" href="https://sdcreativeservices.github.io/summersplash2026/">← All games</a>
+    <h1>🥷 Whack-a-Dash</h1>
+    <p>Quick hands only — bop Dash before he ducks back down.</p>
+  </div>
+
+  <main>
+    <p class="intro">Dash pops up at random. Click or tap to bop him before he disappears. Faster and sneakier the longer you play.</p>
+    <p class="intro" style="font-weight:700; color:var(--tent-red-dark); margin-top:-10px;">🐝 Look closely — a bee sometimes hides in the same spot as Dash. Whack it and you'll get stung!</p>
+
+    <div class="hud">
+      <div>Time: <span class="value" id="timeLeft">30</span>s</div>
+      <div>Score: <span class="value" id="scoreVal">0</span></div>
+    </div>
+
+    <div class="game-frame" id="gameFrame">
+      <div class="hole-grid" id="holeGrid"></div>
+
+      <div class="start-screen" id="startScreen">
+        <h2>Ready to whack Dash?</h2>
+        <button class="big-btn" id="startBtn">Start Game</button>
+      </div>
+
+      <div class="end-screen" id="endScreen">
+        <h2 id="finalScoreText">Score: 0</h2>
+        <div class="score-form">
+          <input type="text" id="nameInput" placeholder="Your name" required>
+          <input type="email" id="emailInput" placeholder="Your email" required>
+          <button class="big-btn" id="submitBtn">Submit my score</button>
+          <button class="text-btn" id="tryAgainBtn">Try again first</button>
+        </div>
+        <p id="submittedMsg" style="display:none; font-weight:600; color:var(--teal);">You're on the board! 🎉</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>Carnival Days — Whack-a-Dash</footer>
+
+<script>
+  // ===================== CONFIG =====================
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbygvQDjVTcqSG5Uz7x74v2EYza81OYGdRKG_s5MgIu-bg-cmDgWdhcZShpyhLOcMFGn/exec";
+  // ====================================================
+
+  const NUM_HOLES = 9;
+  const BEE_CHANCE = 0.16; // how often the bee shows up
+  const BEE_PENALTY = 3;   // points lost if you whack it
+
+  function beeSVG(){
+    return `
+      <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="30" cy="30" r="26" fill="#E8A33D"/>
+        <text x="30" y="40" font-size="30" text-anchor="middle">🐝</text>
+      </svg>`;
+  }
+
+  function mascotCritterSVG(){
+    return `
+      <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="30" cy="30" r="26" fill="#E8A33D"/>
+        <g transform="translate(10,3) scale(0.185)">
+          <g>
+            <path fill="#000101" d="M199.78,109.65c-2.38-7.69-11.97-14.27-23.8-13.24-2.05.18-3.31.86-3.98,1.86-.61-.38-1.17-.65-1.66-.74-3.1-.57-20.91,10.05-31.94,19.46-7.96-2.77-70.58,4.17-72.57,8.92-.48,1.14-.93,2.39-1.36,3.71-10.37-9.21-35.3-23.21-38.24-22.7-.54.1-1.2.45-1.92.96-.55-.52-1.37-.91-2.54-1.13-9.53-1.78-17.88,2.76-20.46,8.78-3.32,7.75.11,9.98,5.69,8.54,1.1-.28,5.04-1.23,7.82-2.4,3.59,4.15,29.33,20.93,35.37,24.94,2.07,1.37,6.46,5.55,9.46,7.69-1.69,14.45-2.18,30.14-1.88,40.97,0,0,15.58,10.74,30.11,16.6,3.2,2.75,6.92,7.16,7,11.36.13,7.71-1.63,15-2.7,17.69-3.25,8.13-3.98,14.56-.76,23.08,3.22,8.53,7.49,19.81,12.98,21.51,10.55,3.26,13.14-8.07,15.21-23.26.87-6.38,12.88-30.52,18.26-42.05.02,0,.04,0,.04,0,2.51-2.71,8.56-25.28,9.14-44.83.24-8.19-.46-17.06-1.53-25.35,1.41-1.78,2.93-3.7,4.48-5.03,6.56-5.62,29.5-23.35,33.94-28.79,3.07,1.49,6.74,2.78,7.87,3.2,6.61,2.45,11.06.14,7.99-9.76Z"/>
+            <path fill="#000101" d="M117.26,262.61c.18-3.05-10.76-3.41-15.24-3.76-4.48-.36,2.33,12.19,7.17,16.85,4.84,4.66,7.17-5.91,8.25-12.37l-.18-.72Z"/>
+          </g>
+          <path fill="#f9c604" d="M146.36,162.81c-7.57-2.86-96.53,9.25-96.53,9.25l-3.41,8.04,76.14-5.27-3.66,24.13,11.02-.99-3.48-23.15h.83s3.74,11.67,3.74,11.67l7.04-3.66-5.59-8.02,14.6-.03s1.52-3.84-.71-11.97Z"/>
+          <path fill="#000101" d="M84.58,219.29c-1.22,7.41-12.53,22.89-21.49,17.89-4.2-2.35-6.26-17.21-8.12-21.73-6.24-15.16-9.66-34.74-9.76-39.66-.3-15.3,21.36-14.69,26.26-12.09,8.08,4.3,6.98,22.33,7.64,25.82,3.92,20.76,6.58,23.03,5.47,29.76Z"/>
+          <path fill="#000101" d="M145.13,33.71c9.3-.68,22.69,5.47,22.69,5.47,0,0-.18-7.16-.95-22.48-4.41-.87-13.36-.99-27.82,11.45-.41-.34-.83-.68-1.25-1.01,2.81-6.86,13.46-19.41,13.46-19.41,0,0-5.16-4.9-10.59-7.74-6.24,3.13-8.73,14.92-9.7,22.45-13.84-8.36-31.27-12.23-51.03-7.68-41.56,11.04-57.41,50.3-51.56,80.29,5.73,29.39,28.66,51.16,80.11,37.39,53.11-14.22,62.63-42.8,53.4-71.28-3.15-9.74-8.9-19.38-16.76-27.45Z"/>
+          <g>
+            <path fill="#f4b79a" d="M42.9,93.59c28.57,1.88,67.93-3.21,102.79-16.95-4.23,51.48-78.72,66.04-102.79,16.95Z"/>
+            <g>
+              <ellipse fill="#000101" cx="113.74" cy="104.72" rx="4.36" ry="4.53" transform="translate(-16.18 20.92) rotate(-9.81)"/>
+              <polygon fill="#000101" points="105.6 106.17 126.04 94.2 122.47 91.86 105.34 104.42 105.6 106.17"/>
+            </g>
+            <g>
+              <ellipse fill="#000101" cx="76.45" cy="108.94" rx="4.36" ry="4.53" transform="translate(-17.45 14.62) rotate(-9.81)"/>
+              <polygon fill="#000101" points="84.18 106.9 60.53 105.69 62.62 101.97 83.6 105.22 84.18 106.9"/>
+            </g>
+          </g>
+        </g>
+      </svg>`;
+  }
+
+  const holeGrid = document.getElementById('holeGrid');
+  const holes = [];
+  for(let i = 0; i < NUM_HOLES; i++){
+    const hole = document.createElement('div');
+    hole.className = 'hole';
+    hole.dataset.index = i;
+    holeGrid.appendChild(hole);
+    const holeObj = { el: hole, occupied: false, critter: null, hideTimeout: null };
+    holes.push(holeObj);
+
+    // Clicking anywhere in the hole (not just directly on the character)
+    // counts as a hit, as long as something is currently up.
+    hole.addEventListener('click', () => {
+      if(!gameActive || !holeObj.occupied || !holeObj.critter) return;
+      clearTimeout(holeObj.hideTimeout);
+      whack(holeObj, holeObj.critter);
+    });
+  }
+
+  const startScreen = document.getElementById('startScreen');
+  const endScreen = document.getElementById('endScreen');
+  const timeLeftEl = document.getElementById('timeLeft');
+  const scoreValEl = document.getElementById('scoreVal');
+  const gameFrame = document.getElementById('gameFrame');
+
+  let score = 0;
+  let timeLeft = 30;
+  let gameActive = false;
+  let spawnTimeout = null;
+  let countdownInterval = null;
+  let currentUpTime = 880; // ms a critter stays up
+  const MIN_UP_TIME = 440;
+
+  function fireConfetti(count = 70){
+    const colors = ['#C1272D', '#E8A33D', '#2F7A6D', '#7B4B94', '#2E6E9E', '#D9668B'];
+    for(let i = 0; i < count; i++){
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random() * 100 + 'vw';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.animationDelay = (Math.random() * 0.3) + 's';
+      document.body.appendChild(piece);
+      setTimeout(() => piece.remove(), 2100);
+    }
+  }
+
+  function popRandomCritter(){
+    if(!gameActive) return;
+    const free = holes.filter(h => !h.occupied);
+    if(!free.length){ scheduleNext(); return; }
+
+    const hole = free[Math.floor(Math.random() * free.length)];
+    hole.occupied = true;
+
+    const isBee = Math.random() < BEE_CHANCE;
+    const critter = document.createElement('div');
+    critter.className = 'critter' + (isBee ? ' bee' : '');
+    critter.innerHTML = isBee ? beeSVG() : mascotCritterSVG();
+    critter.dataset.type = isBee ? 'bee' : 'dash';
+    critter.dataset.value = isBee ? -BEE_PENALTY : 1;
+    hole.el.appendChild(critter);
+    hole.critter = critter;
+
+    requestAnimationFrame(() => critter.classList.add('up'));
+
+    const upFor = currentUpTime + Math.random() * 300;
+    hole.hideTimeout = setTimeout(() => retire(hole, critter), upFor);
+
+    critter.addEventListener('click', () => {
+      if(!gameActive) return;
+      clearTimeout(hole.hideTimeout);
+      whack(hole, critter);
+    });
+
+    scheduleNext();
+  }
+
+  function retire(hole, critter){
+    critter.classList.remove('up');
+    hole.critter = null;
+    setTimeout(() => {
+      if(critter.parentNode) critter.remove();
+      hole.occupied = false;
+    }, 150);
+  }
+
+  function whack(hole, critter){
+    const rect = hole.el.getBoundingClientRect();
+    const frameRect = gameFrame.getBoundingClientRect();
+    const x = rect.left - frameRect.left + rect.width/2;
+    const y = rect.top - frameRect.top + rect.height/2;
+    const value = parseInt(critter.dataset.value, 10) || 1;
+    const isBee = critter.dataset.type === 'bee';
+
+    const scoreText = document.createElement('div');
+    scoreText.className = 'floating-score' + (isBee ? ' penalty' : '');
+    scoreText.textContent = isBee ? `Ouch! ${value}` : `+${value}`;
+    scoreText.style.left = (x - 10) + 'px';
+    scoreText.style.top = (y - 20) + 'px';
+    gameFrame.appendChild(scoreText);
+    setTimeout(() => scoreText.remove(), 750);
+
+    if(isBee){
+      gameFrame.classList.remove('shake');
+      void gameFrame.offsetWidth; // restart animation if triggered again quickly
+      gameFrame.classList.add('shake');
+
+      const sting = document.createElement('div');
+      sting.className = 'explosion';
+      sting.style.left = (x - 10) + 'px';
+      sting.style.top = (y - 10) + 'px';
+      gameFrame.appendChild(sting);
+      setTimeout(() => sting.remove(), 450);
+    }
+
+    critter.remove();
+    hole.occupied = false;
+    hole.critter = null;
+    score = Math.max(0, score + value);
+    scoreValEl.textContent = score;
+  }
+
+  function scheduleNext(){
+    if(!gameActive) return;
+    const gap = 480 + Math.random() * 340;
+    spawnTimeout = setTimeout(popRandomCritter, gap);
+    if(currentUpTime > MIN_UP_TIME) currentUpTime -= 9;
+  }
+
+  function startGame(){
+    score = 0;
+    timeLeft = 30;
+    currentUpTime = 880;
+    scoreValEl.textContent = 0;
+    timeLeftEl.textContent = 30;
+    gameActive = true;
+    startScreen.style.display = 'none';
+    endScreen.style.display = 'none';
+
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.style.display = 'inline-block';
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit my score';
+    document.getElementById('submittedMsg').style.display = 'none';
+
+    holes.forEach(h => {
+      h.el.innerHTML = '';
+      h.occupied = false;
+      h.critter = null;
+      clearTimeout(h.hideTimeout);
+    });
+
+    scheduleNext();
+
+    countdownInterval = setInterval(() => {
+      timeLeft--;
+      timeLeftEl.textContent = timeLeft;
+      if(timeLeft <= 0) endGame();
+    }, 1000);
+  }
+
+  function endGame(){
+    gameActive = false;
+    clearTimeout(spawnTimeout);
+    clearInterval(countdownInterval);
+    holes.forEach(h => {
+      h.el.innerHTML = '';
+      h.occupied = false;
+      h.critter = null;
+      clearTimeout(h.hideTimeout);
+    });
+    document.getElementById('finalScoreText').textContent = `Final score: ${score}`;
+    endScreen.style.display = 'flex';
+    fireConfetti();
+  }
+
+  document.getElementById('startBtn').addEventListener('click', startGame);
+  document.getElementById('tryAgainBtn').addEventListener('click', startGame);
+
+  document.getElementById('submitBtn').addEventListener('click', async () => {
+    const name = document.getElementById('nameInput').value.trim();
+    const email = document.getElementById('emailInput').value.trim();
+    if(!name || !email){
+      alert('Please fill in your name and email.');
+      return;
+    }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    try{
+      if(SCRIPT_URL && SCRIPT_URL.indexOf('PASTE_YOUR') === -1){
+        await fetch(SCRIPT_URL, {
+          method:'POST',
+          mode:'no-cors',
+          headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+          body: JSON.stringify({ game:'whack-a-dash', name, email, score })
+        });
+      }
+    }catch(err){
+      console.error(err);
+    }
+
+    btn.style.display = 'none';
+    document.getElementById('submittedMsg').style.display = 'block';
+    fireConfetti(40);
+  });
+</script>
+</body>
+</html>
