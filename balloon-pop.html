@@ -223,6 +223,8 @@
     100%{ transform: scale(1); }
   }
   .balloon.mascot-balloon{
+    width:150px;
+    height:170px;
     animation: mascot-glow 1.1s ease-in-out infinite alternate;
   }
   .balloon.mascot-balloon svg{
@@ -383,7 +385,8 @@
     }
 
     const frameWidth = gameFrame.clientWidth;
-    const left = Math.random() * (frameWidth - 120) + 4;
+    const spawnWidth = isMascot ? 158 : 120;
+    const left = Math.random() * (frameWidth - spawnWidth) + 4;
     balloon.style.left = left + 'px';
 
     const duration = currentSpeed + Math.random() * 800;
