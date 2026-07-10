@@ -12,13 +12,41 @@
  *    - Who has access: "Anyone"
  * 5. Click Deploy, authorize it (you'll see a Google warning screen —
  *    this is normal for personal scripts, click Advanced > Go to project).
- * 6. Copy the "Web app URL" it gives you — that's your SCRIPT_URL.
- *    Paste that URL into the CONFIG section at the top of both
- *    duck-pond.html and balloon-pop.html.
+ * 6. Copy the "Web app URL" it gives you — that's your SCRIPT_URL,
+ *    already wired into all of the game HTML files.
  *
- * This script will auto-create two tabs the first time each game is
- * played: "DuckPond" and "BalloonPop".
+ * This script auto-creates one tab per game the first time it's played.
+ * To add a new game later, just add an entry to GAMES below and use
+ * that same key as the "game" value in the game's fetch() call.
  */
+
+var GAMES = {
+  'duck-pond': {
+    tab: 'DuckPond',
+    headers: ['Timestamp', 'Name', 'Email', 'Duck Picked'],
+    row: function(d) { return [new Date(), d.name || '', d.email || '', d.pick || '']; }
+  },
+  'balloon-pop': {
+    tab: 'BalloonPop',
+    headers: ['Timestamp', 'Name', 'Email', 'Score'],
+    row: function(d) { return [new Date(), d.name || '', d.email || '', d.score || 0]; }
+  },
+  'whack-a-dash': {
+    tab: 'WhackADash',
+    headers: ['Timestamp', 'Name', 'Email', 'Score'],
+    row: function(d) { return [new Date(), d.name || '', d.email || '', d.score || 0]; }
+  },
+  'shell-game': {
+    tab: 'ShellGame',
+    headers: ['Timestamp', 'Name', 'Email', 'Result'],
+    row: function(d) { return [new Date(), d.name || '', d.email || '', d.result || '']; }
+  },
+  'high-striker': {
+    tab: 'HighStriker',
+    headers: ['Timestamp', 'Name', 'Email', 'Score'],
+    row: function(d) { return [new Date(), d.name || '', d.email || '', d.score || 0]; }
+  }
+};
 
 function doPost(e) {
   var lock = LockService.getScriptLock();
@@ -26,40 +54,53 @@ function doPost(e) {
 
   try {
     var data = JSON.parse(e.postData.contents);
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheetName = data.game === 'balloon-pop' ? 'BalloonPop' : 'DuckPond';
-    var sheet = ss.getSheetByName(sheetName);
+    var config = GAMES[data.game];
 
-    if (!sheet) {
-      sheet = ss.insertSheet(sheetName);
-      if (sheetName === 'DuckPond') {
-        sheet.appendRow(['Timestamp', 'Name', 'Email', 'Duck Picked']);
-      } else {
-        sheet.appendRow(['Timestamp', 'Name', 'Email', 'Score']);
-      }
+    if (!config) {
+      return jsonOut({ status: 'error', message: 'Unknown game: ' + data.game });
     }
 
-    var row = sheetName === 'DuckPond'
-      ? [new Date(), data.name || '', data.email || '', data.pick || '']
-      : [new Date(), data.name || '', data.email || '', data.score || 0];
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName(config.tab);
 
-    sheet.appendRow(row);
+    if (!sheet) {
+      sheet = ss.insertSheet(config.tab);
+      sheet.appendRow(config.headers);
+    }
 
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'ok' }))
-      .setMimeType(ContentService.MimeType.JSON);
+    sheet.appendRow(config.row(data));
+
+    return jsonOut({ status: 'ok' });
 
   } catch (err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'error', message: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonOut({ status: 'error', message: err.message });
   } finally {
     lock.releaseLock();
   }
 }
 
 function doGet(e) {
+  var action = e.parameter.action;
+  var game = e.parameter.game;
+
+  if (action === 'count' && GAMES[game]) {
+    return jsonOut({ count: getEntryCount_(GAMES[game].tab) });
+  }
+
   return ContentService.createTextOutput(
     'Carnival Games logging endpoint is live. POST only.'
   );
+}
+
+function getEntryCount_(sheetName) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return 0;
+  return Math.max(0, sheet.getLastRow() - 1);
+}
+
+function jsonOut(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
 }
