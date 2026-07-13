@@ -583,7 +583,7 @@
   async function loadLeaderboard(highlightName){
     if(!SCRIPT_URL || SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return;
     try{
-      const res = await fetch(`${SCRIPT_URL}?action=leaderboard&game=whack-a-dash`);
+      const res = await fetch(`${SCRIPT_URL}?action=leaderboard&game=whack-a-dash&t=${Date.now()}`);
       const top = await res.json();
       const list = document.getElementById('leaderboardList');
       const board = document.getElementById('leaderboard');
