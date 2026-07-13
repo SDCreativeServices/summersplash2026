@@ -323,7 +323,7 @@
 <script>
   // ===================== CONFIG =====================
   // Paste your Google Apps Script Web App URL here (see apps-script.gs).
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxIM7IkDz1JVjOtn6lCJDsIsqw-t-EoQlcfkCtTEYTuVE9tPv4XWfzA6pDH7DMbp5DS/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxkxz2_BUcELzlIKYgo57xNPc6RqWCQoeXRqNWwk2RWd2K2GCJIIUbkpYiWDFd9Rsqb/exec";
   // ====================================================
 
   // Duck colors — swap these for your own vector assets by replacing
@@ -368,7 +368,7 @@
   async function loadEntryCount(){
     if(!SCRIPT_URL || SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return;
     try{
-      const res = await fetch(`${SCRIPT_URL}?action=count&game=duck-pond`);
+      const res = await fetch(`${SCRIPT_URL}?action=count&game=duck-pond&t=${Date.now()}`);
       const data = await res.json();
       const el = document.getElementById('entriesCount');
       el.textContent = `🦆 ${data.count} duck${data.count === 1 ? '' : 's'} picked so far`;
