@@ -203,6 +203,34 @@
   .text-btn:hover{ color:var(--tent-red-dark); }
 
   .score-form{ max-width:340px; margin:0 auto; }
+
+  .leaderboard{
+    width:100%;
+    max-width:280px;
+    margin:4px auto 14px;
+    text-align:left;
+    background:var(--canvas);
+    border-radius:12px;
+    padding:12px 16px;
+    display:none;
+  }
+  .leaderboard.visible{ display:block; }
+  .leaderboard h4{
+    margin:0 0 8px;
+    font-family:'Alfa Slab One', serif;
+    font-size:13px;
+    color:var(--tent-red-dark);
+    text-align:center;
+    letter-spacing:0.5px;
+  }
+  .leaderboard ol{
+    margin:0;
+    padding-left:20px;
+    font-size:13px;
+    font-weight:600;
+  }
+  .leaderboard li{ margin-bottom:4px; }
+  .leaderboard li.you{ color:var(--tent-red); }
   .score-form input{
     width:100%;
     padding:12px 14px;
@@ -314,6 +342,10 @@
 
       <div class="end-screen" id="endScreen">
         <h2 id="finalScoreText">Score: 0</h2>
+        <div class="leaderboard" id="leaderboard">
+          <h4>🏆 Top Scores</h4>
+          <ol id="leaderboardList"></ol>
+        </div>
         <div class="score-form">
           <input type="text" id="nameInput" placeholder="Your name" required>
           <input type="email" id="emailInput" placeholder="Your email" required>
@@ -329,7 +361,7 @@
 
 <script>
   // ===================== CONFIG =====================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxIM7IkDz1JVjOtn6lCJDsIsqw-t-EoQlcfkCtTEYTuVE9tPv4XWfzA6pDH7DMbp5DS/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbygvQDjVTcqSG5Uz7x74v2EYza81OYGdRKG_s5MgIu-bg-cmDgWdhcZShpyhLOcMFGn/exec";
   // ====================================================
 
   const NUM_HOLES = 9;
@@ -545,6 +577,24 @@
     document.getElementById('finalScoreText').textContent = `Final score: ${score}`;
     endScreen.style.display = 'flex';
     fireConfetti();
+    loadLeaderboard();
+  }
+
+  async function loadLeaderboard(highlightName){
+    if(!SCRIPT_URL || SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return;
+    try{
+      const res = await fetch(`${SCRIPT_URL}?action=leaderboard&game=whack-a-dash`);
+      const top = await res.json();
+      const list = document.getElementById('leaderboardList');
+      const board = document.getElementById('leaderboard');
+      if(!top.length){ board.classList.remove('visible'); return; }
+      list.innerHTML = top.map(row =>
+        `<li class="${highlightName && row.name === highlightName ? 'you' : ''}">${row.name} — ${row.score}</li>`
+      ).join('');
+      board.classList.add('visible');
+    }catch(err){
+      console.error('Could not load leaderboard', err);
+    }
   }
 
   document.getElementById('startBtn').addEventListener('click', startGame);
@@ -577,6 +627,7 @@
     btn.style.display = 'none';
     document.getElementById('submittedMsg').style.display = 'block';
     fireConfetti(40);
+    loadLeaderboard(name);
   });
 </script>
 </body>
